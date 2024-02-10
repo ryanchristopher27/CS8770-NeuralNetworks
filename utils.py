@@ -28,11 +28,11 @@ def confusion_matrix(y_true, y_pred, num_classes, num_samples, class_names=None)
 
     ConfusionMatrix = torch.zeros((num_classes ,num_classes))
     for i in range(num_samples):
-        ConfusionMatrix[y_true,y_pred] = ConfusionMatrix[y_true,y_pred] + 1
+        ConfusionMatrix[int(y_true[i]),int(y_pred[i])] = ConfusionMatrix[int(y_true[i]),int(y_pred[i])] + 1
 
     df_cm = pd.DataFrame(np.asarray(ConfusionMatrix), index = [i for i in class_names],
                     columns = [i for i in class_names])
     
     plt.figure(figsize = (10,7))
-    sn.heatmap(df_cm, annot=True, fmt='d')
-    plt.show()    
+    sn.heatmap(df_cm, annot=True, fmt='.0f')
+    plt.show()   
