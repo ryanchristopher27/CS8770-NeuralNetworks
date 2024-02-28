@@ -10,9 +10,53 @@ from utils.models import *
 from utils.data import *
 from utils.plots import *
 from utils.hyperparameters import *
+from utils.result import *
 
 
 def main():
+
+    run_single_model()
+
+
+def experimental_model_evaluation():
+
+    dataset = 'MNIST'
+    # model_name = 'Balanced_MLP'
+    model_names = ['Balanced_MLP', 'Wide_MLP', 'Deep_MLP', 'Balanced_CNN']
+    train_batch_size = 200
+    test_batch_size = 50
+    device, on_gpu = cuda_setup()
+    epochs = 2
+    learning_rate = 0.01
+    momentum = 0.9
+    optimizer_name = "SGD"
+    criterion_name = "CrossEntropy"
+    display_plots = True
+
+    results = []
+
+    for model_name in model_names:
+        result = single_model_evaluation(
+            model_name=model_name,
+            dataset=dataset,
+            train_batch_size=train_batch_size,
+            test_batch_size=test_batch_size,
+            epochs=epochs,
+            learning_rate=learning_rate,
+            momentum=momentum,
+            optimizer_name=optimizer_name,
+            criterion_name=criterion_name,
+            display_plots=display_plots,
+            device=device,
+            on_gpu=on_gpu,
+        )
+
+        results.append(result)
+
+        
+
+
+def run_single_model():
 
     dataset = 'MNIST'
     model_name = 'Balanced_MLP'
@@ -26,7 +70,7 @@ def main():
     criterion_name = "CrossEntropy"
     display_plots = True
     
-    single_model_evaluation(
+    result = single_model_evaluation(
         model_name=model_name,
         dataset=dataset,
         train_batch_size=train_batch_size,
@@ -40,7 +84,6 @@ def main():
         device=device,
         on_gpu=on_gpu,
     )
-
 
 def single_model_evaluation(
     model_name: str,
@@ -119,7 +162,7 @@ def single_model_evaluation(
 
 
     # Test Model
-    y_pred, y_true = test(
+    y_pred, y_true, test_loss, test_accuracy, test_correct = test(
         model=model,
         dataloader=test_loader,
         criterion=criterion,
@@ -132,6 +175,24 @@ def single_model_evaluation(
         plot_loss_curve(train_loss_epoch, val_loss_epoch)
         plot_accuracy_curve(train_acc_epoch, val_acc_epoch)
         confusion_matrix(y_true, y_pred, num_classes=num_classes, num_samples=len(y_true), class_names=[str(i) for i in range(num_classes)])
+
+    result = Result(
+        train_acc_vector=train_acc_epoch,
+        val_acc_vector=val_acc_epoch,
+        train_loss_vector=train_loss_epoch,
+        val_loss_vector=val_loss_epoch,
+        y_pred=y_pred,
+        y_true=y_true,
+        test_loss=test_loss,
+        test_accuracy=test_accuracy,
+        test_correct=test_correct,
+        hours=int(hours),
+        minutes=int(minutes),
+        seconds=int(seconds),
+    )
+
+    return result
+
 
 
 def train(
@@ -248,7 +309,7 @@ def test(
 
     y_pred = y_pred.flatten()
 
-    return y_pred, y_true
+    return y_pred, y_true, test_loss, test_accuracy, test_correct
 
 
 

@@ -22,13 +22,23 @@ def get_dataloader(
 
         train_selected_indices = get_even_class_indices(train_dataset, count=5000)
         train_subset_sampler = SubsetRandomSampler(train_selected_indices)
-        train_loader = DataLoader(train_dataset, batch_size=train_batch_size, sampler=train_subset_sampler)
+        train_loader = DataLoader(
+            train_dataset, 
+            batch_size=train_batch_size, 
+            sampler=train_subset_sampler,
+            worker_init_fn=torch.manual_seed(42),
+        )
 
 
         test_dataset = MNIST(root='./data', train=False, download=True, transform=transform)
         test_selected_indices = get_even_class_indices(test_dataset, count=850)
         test_subset_sampler = SubsetRandomSampler(test_selected_indices)
-        test_loader = DataLoader(test_dataset, batch_size=test_batch_size, sampler=test_subset_sampler)
+        test_loader = DataLoader(
+            test_dataset, 
+            batch_size=test_batch_size, 
+            sampler=test_subset_sampler,
+            worker_init_fn=torch.manual_seed(42),
+        )
 
         output_size = 10
         input_size = 28 * 28

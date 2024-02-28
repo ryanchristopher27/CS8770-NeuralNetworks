@@ -34,3 +34,14 @@ def plot_accuracy_curve(train_acc, val_acc):
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
     plt.title('Accuracy Per Epoch')
+
+
+def plot_accuracy_curves_multiple_models(curves, models):
+    fig = plt.figure()
+    for curve in curves:
+        plt.plot(curve)
+
+    plt.legend(models, loc='upper right')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.title('Accuracy Per Epoch')
