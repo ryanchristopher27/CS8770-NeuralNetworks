@@ -42,5 +42,7 @@ def get_dataloader(
 
         output_size = 10
         input_size = 28 * 28
+        train_size = 50000
+        test_size = 8500
 
-    return train_loader, test_loader, output_size, input_size
+    return train_loader, test_loader, output_size, input_size, train_size, test_size
