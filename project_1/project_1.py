@@ -17,25 +17,32 @@ def main():
 
     run_single_model()
 
+    # experimental_model_evaluation()
+
 
 def experimental_model_evaluation():
 
     dataset = 'MNIST'
     # model_name = 'Balanced_MLP'
-    model_names = ['Balanced_MLP', 'Wide_MLP', 'Deep_MLP', 'Balanced_CNN']
+    model_names = ['Balanced_MLP', 'Wide_MLP', 'One_Layer_MLP', 'Deep_MLP', 'Deep_Skinny_MLP']
+    # model_names = ['Balanced_MLP', 'Wide_MLP']
     train_batch_size = 200
     test_batch_size = 50
     device, on_gpu = cuda_setup()
-    epochs = 2
-    learning_rate = 0.01
+    epochs = 50
+    learning_rate = 0.0001
     momentum = 0.9
-    optimizer_name = "SGD"
+    optimizer_name = "ADAM"
     criterion_name = "CrossEntropy"
-    display_plots = True
+    display_plots = False
 
     results = []
 
-    for model_name in model_names:
+    for i, model_name in enumerate(model_names):
+        print("==="*30)
+        print(f"Model: {model_name} [{i+1}/{len(model_names)}]")
+        print("==="*30)
+
         result = single_model_evaluation(
             model_name=model_name,
             dataset=dataset,
@@ -53,20 +60,50 @@ def experimental_model_evaluation():
 
         results.append(result)
 
+    print("==="*30)
+    print("Model Results")
+    print("==="*30)
+    for i, model_name in enumerate(model_names):
+        print(f"\nModel: {model_name}")
+        y_pred = results[i].get_y_pred()
+        y_true = results[i].get_y_true()
+        get_conf_matrix_stats(y_pred, y_true)
+    
+    val_acc_vectors = [result.get_val_acc_vector() for result in results]
+
+    plot_accuracy_curves_multiple_models(
+        curves=val_acc_vectors, 
+        models=model_names,
+        x_label="Epochs",
+        y_label="Accuracy",
+        title="Validation Accuracy Per Epoch"
+    )
+
+    train_acc_vectors = [result.get_train_acc_vector() for result in results]
+
+    plot_accuracy_curves_multiple_models(
+        curves=train_acc_vectors, 
+        models=model_names,
+        x_label="Epochs",
+        y_label="Accuracy",
+        title="Training Accuracy Per Epoch"
+    )
+
+
         
 
 
 def run_single_model():
 
     dataset = 'MNIST'
-    model_name = 'Balanced_MLP'
+    model_name = 'Wide_MLP'
     train_batch_size = 200
     test_batch_size = 50
     device, on_gpu = cuda_setup()
-    epochs = 2
-    learning_rate = 0.01
+    epochs = 100
+    learning_rate = 0.0001
     momentum = 0.9
-    optimizer_name = "SGD"
+    optimizer_name = "ADAM"
     criterion_name = "CrossEntropy"
     display_plots = True
     
@@ -100,7 +137,7 @@ def single_model_evaluation(
     on_gpu: bool,
 ):
     
-    train_loader, test_loader, output_size, input_size = get_dataloader(data_name=dataset, model_name=model_name, train_batch_size=train_batch_size, test_batch_size=test_batch_size)
+    train_loader, test_loader, output_size, input_size, train_size, test_size = get_dataloader(data_name=dataset, model_name=model_name, train_batch_size=train_batch_size, test_batch_size=test_batch_size)
 
     num_classes = output_size 
 
@@ -140,7 +177,8 @@ def single_model_evaluation(
             optimizer=optimizer,
             criterion=criterion,
             on_gpu=on_gpu,
-            device=device
+            device=device,
+            size=train_size
         )
         validation(
             model=model,
@@ -151,7 +189,8 @@ def single_model_evaluation(
             val_correct_epoch=val_correct_epoch,
             criterion=criterion,
             on_gpu=on_gpu,
-            device=device
+            device=device,
+            size=test_size
         )
     train_end_time = time.time()
 
@@ -167,8 +206,11 @@ def single_model_evaluation(
         dataloader=test_loader,
         criterion=criterion,
         on_gpu=on_gpu,
-        device=device
+        device=device,
+        size=test_size
     )
+
+    get_conf_matrix_stats(y_pred, y_true)
 
     # Plot Curves
     if display_plots:
@@ -191,6 +233,8 @@ def single_model_evaluation(
         seconds=int(seconds),
     )
 
+    
+
     return result
 
 
@@ -205,7 +249,8 @@ def train(
     optimizer, 
     criterion, 
     on_gpu, 
-    device
+    device,
+    size,
 ):
     model.train()
 
@@ -234,10 +279,10 @@ def train(
 
 
     train_loss_epoch[epoch] = loss_accumulator / batch_count
-    train_acc_epoch[epoch] = correct_accumulator / len(dataloader.dataset)
+    train_acc_epoch[epoch] = correct_accumulator / size
     train_correct_epoch[epoch] = correct_accumulator
 
-    print(f'Train Set: Average Batch Loss: {loss_accumulator/batch_count:.6f}, Accuracy: {correct_accumulator}/{len(dataloader.dataset)} ({100 * correct_accumulator / len(dataloader.dataset):.0f}%)')
+    print(f'Train Set: Average Batch Loss: {loss_accumulator/batch_count:.6f}, Accuracy: {correct_accumulator}/{size} ({100 * correct_accumulator / size:.0f}%)')
 
 
 def validation(
@@ -249,7 +294,8 @@ def validation(
     val_correct_epoch,
     criterion,
     on_gpu,
-    device
+    device,
+    size
 ):
     model.eval()
     loss_accumulator = 0
@@ -267,10 +313,10 @@ def validation(
             correct_accumulator += pred.eq(label.data.view_as(pred)).sum()
 
     val_loss_epoch[epoch] = loss_accumulator / len(dataloader)
-    val_acc_epoch[epoch] = correct_accumulator / len(dataloader.dataset)
+    val_acc_epoch[epoch] = correct_accumulator / size
     val_correct_epoch[epoch] = correct_accumulator
 
-    print(f'\nVal Set: Loss: {loss_accumulator/len(dataloader.dataset):.6f}, Accuracy: {correct_accumulator}/{len(dataloader.dataset)} ({100 * correct_accumulator / len(dataloader.dataset):.0f}%)')
+    print(f'\nVal Set: Loss: {loss_accumulator/size:.6f}, Accuracy: {correct_accumulator}/{size} ({100 * correct_accumulator / size:.0f}%)')
 
 
 def test(
@@ -278,7 +324,8 @@ def test(
     dataloader,
     criterion,
     on_gpu,
-    device
+    device,
+    size
 ):
     model.eval()
     loss_accumulator = 0
@@ -301,11 +348,11 @@ def test(
             y_pred[i * dataloader.batch_size : (i + 1) * dataloader.batch_size] = pred.cpu()
             y_true[i * dataloader.batch_size : (i + 1) * dataloader.batch_size] = label.cpu()
 
-    test_loss = loss_accumulator/len(dataloader.dataset)
-    test_accuracy = correct_accumulator/len(dataloader.dataset)
+    test_loss = loss_accumulator/size
+    test_accuracy = correct_accumulator/size
     test_correct = correct_accumulator
 
-    print(f'\nTest Set: Loss: {test_loss:.6f}, Accuracy: {test_correct}/{len(dataloader.dataset)} ({100 * test_accuracy:.0f}%)')
+    print(f'\nTest Set: Loss: {test_loss:.6f}, Accuracy: {test_correct}/{size} ({100 * test_accuracy:.0f}%)')
 
     y_pred = y_pred.flatten()
 

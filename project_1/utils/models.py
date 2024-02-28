@@ -1,5 +1,6 @@
 # Imports
 import torch.nn as nn
+import torch.nn.init as init
 
 
 def get_model(
@@ -9,24 +10,34 @@ def get_model(
 ):
 
     if model_name == "Balanced_MLP":
-        class Main_MLP(nn.Module):
+        class Balanced_MLP(nn.Module):
             def __init__(self):
-                super(Main_MLP, self).__init__()
+                super(Balanced_MLP, self).__init__()
                 self.layers = nn.Sequential(
                     nn.Flatten(),
-                    nn.Linear(input_size, 2000),
+                    nn.Linear(input_size, 1024),
                     nn.ReLU(),
-                    nn.Linear(2000, 2000),
+                    nn.Linear(1024, 1024),
                     nn.ReLU(),
-                    nn.Linear(2000, 256),
+                    nn.Linear(1024, 1024),
+                    nn.ReLU(),
+                    nn.Linear(1024, 512),
+                    nn.ReLU(),
+                    nn.Linear(512, 256),
                     nn.ReLU(),
                     nn.Linear(256, output_size),
+                    nn.Softmax(),
                 )
             def forward(self, x):
                 y_pred = self.layers(x)
                 return y_pred
             
-        model = Main_MLP()
+            def weight_init(self, m):
+                if isinstance(m, nn.Linear):
+                    init.normal_(m.weight, mean=0, std=0.01)
+                    init.constant_(m.bias, 0)            
+            
+        model = Balanced_MLP()
 
     elif model_name == "Wide_MLP":
         class Wide_MLP(nn.Module):
@@ -34,7 +45,7 @@ def get_model(
                 super(Wide_MLP, self).__init__()
                 self.layers = nn.Sequential(
                     nn.Flatten(),
-                    nn.Linear(28*28, 28*28*4),
+                    nn.Linear(input_size, 28*28*4),
                     nn.ReLU(),
                     nn.Linear(28*28*4, 28*28*4),
                     nn.ReLU(),
@@ -46,25 +57,22 @@ def get_model(
                 y_pred = self.layers(x)
                 return y_pred
             
+            def weight_init(self, m):
+                if isinstance(m, nn.Linear):
+                    init.normal_(m.weight, mean=0, std=0.01)
+                    init.constant_(m.bias, 0)   
+            
         model = Wide_MLP()
 
-    elif model_name == "Deep_MLP":
-        class Deep_MLP(nn.Module):
+    elif model_name == "One_Layer_MLP":
+        class One_Layer_MLP(nn.Module):
             def __init__(self):
-                super(Deep_MLP, self).__init__()
+                super(One_Layer_MLP, self).__init__()
                 self.layers = nn.Sequential(
                     nn.Flatten(),
-                    nn.Linear(28*28, 28*28),
+                    nn.Linear(input_size, 28*28*8),
                     nn.ReLU(),
-                    nn.Linear(28*28, 28*28),
-                    nn.ReLU(),
-                    nn.Linear(28*28, 28*28),
-                    nn.ReLU(),
-                    nn.Linear(28*28, 392),
-                    nn.ReLU(),
-                    nn.Linear(392, 392),
-                    nn.ReLU(),
-                    nn.Linear(392, output_size),
+                    nn.Linear(28*28*8, output_size),
                     nn.Softmax(),
                 )
             
@@ -72,7 +80,80 @@ def get_model(
                 y_pred = self.layers(x)
                 return y_pred
             
+            def weight_init(self, m):
+                if isinstance(m, nn.Linear):
+                    init.normal_(m.weight, mean=0, std=0.01)
+                    init.constant_(m.bias, 0)   
+            
+        model = One_Layer_MLP()
+
+    elif model_name == "Deep_MLP":
+        class Deep_MLP(nn.Module):
+            def __init__(self):
+                super(Deep_MLP, self).__init__()
+                self.layers = nn.Sequential(
+                    nn.Flatten(),
+                    nn.Linear(input_size, 512),
+                    nn.ReLU(),
+                    nn.Linear(512, 512),
+                    nn.ReLU(),
+                    nn.Linear(512, 512),
+                    nn.ReLU(),
+                    nn.Linear(512, 512),
+                    nn.ReLU(),
+                    nn.Linear(512, 512),
+                    nn.ReLU(),
+                    nn.Linear(512, 512),
+                    nn.ReLU(),
+                    nn.Linear(512, output_size),
+                    nn.Softmax(),
+                )
+            
+            def forward(self, x):
+                y_pred = self.layers(x)
+                return y_pred
+            
+            def weight_init(self, m):
+                if isinstance(m, nn.Linear):
+                    init.normal_(m.weight, mean=0, std=0.01)
+                    init.constant_(m.bias, 0)   
+            
         model = Deep_MLP()
+        
+    elif model_name == 'Deep_Skinny_MLP':
+        class Deep_Skinny_MLP(nn.Module):
+            def __init__(self):
+                super(Deep_Skinny_MLP, self).__init__()
+                self.layers = nn.Sequential(
+                    nn.Flatten(),
+                    nn.Linear(input_size, 128),
+                    nn.ReLU(),
+                    nn.Linear(128, 128),
+                    nn.ReLU(),
+                    nn.Linear(128, 128),
+                    nn.ReLU(),
+                    nn.Linear(128, 128),
+                    nn.ReLU(),
+                    nn.Linear(128, 128),
+                    nn.ReLU(),
+                    nn.Linear(128, 128),
+                    nn.ReLU(),
+                    nn.Linear(128, 128),
+                    nn.ReLU(),
+                    nn.Linear(128, output_size),
+                    nn.Softmax(),
+                )
+            
+            def forward(self, x):
+                y_pred = self.layers(x)
+                return y_pred
+            
+            def weight_init(self, m):
+                if isinstance(m, nn.Linear):
+                    init.normal_(m.weight, mean=0, std=0.01)
+                    init.constant_(m.bias, 0)   
+            
+        model = Deep_Skinny_MLP()
 
     elif model_name == 'Balanced_CNN':
         class Balanced_CNN(nn.Module):
@@ -102,6 +183,11 @@ def get_model(
             def forward(self, x):
                 y_pred = self.layers(x)
                 return y_pred
+            
+            def weight_init(self, m):
+                if isinstance(m, nn.Linear):
+                    init.normal_(m.weight, mean=0, std=0.01)
+                    init.constant_(m.bias, 0)   
             
         model = Balanced_CNN()
     

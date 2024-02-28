@@ -14,7 +14,7 @@ def plot_images_with_ground_truth_labels(test_loader):
         plt.title("Ground Truth: {}".format(example_targets[i]))
         plt.xticks([])
         plt.yticks([])
-
+    plt.show()
 
 def plot_loss_curve(train_loss, val_loss):
     fig = plt.figure()
@@ -24,7 +24,7 @@ def plot_loss_curve(train_loss, val_loss):
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.title('Loss Per Epoch')
-
+    plt.show()
     
 def plot_accuracy_curve(train_acc, val_acc):
     fig = plt.figure()
@@ -34,14 +34,15 @@ def plot_accuracy_curve(train_acc, val_acc):
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
     plt.title('Accuracy Per Epoch')
+    plt.show()
 
-
-def plot_accuracy_curves_multiple_models(curves, models):
+def plot_accuracy_curves_multiple_models(curves, models, x_label, y_label, title):
     fig = plt.figure()
     for curve in curves:
         plt.plot(curve)
 
     plt.legend(models, loc='upper right')
-    plt.xlabel('Epochs')
-    plt.ylabel('Accuracy')
-    plt.title('Accuracy Per Epoch')
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
+    plt.show()

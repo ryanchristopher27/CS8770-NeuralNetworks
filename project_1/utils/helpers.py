@@ -1,6 +1,7 @@
 # Imports
 import torch
 from torch.utils.data import Dataset
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 def cuda_setup() -> tuple:
     if torch.cuda.is_available():
@@ -110,4 +111,14 @@ def get_even_class_indices(dataset, count :int):
     return all_indices
 
     
+def get_conf_matrix_stats(y_pred, y_true):
+    accuracy = accuracy_score(y_true, y_pred)
+    precision = precision_score(y_true, y_pred, average='macro')
+    recall = recall_score(y_true, y_pred, average='macro')
+    f1 = f1_score(y_true, y_pred, average='macro')
+
+    print(f'Accuracy: {accuracy:.4f} ({accuracy * 100:.2f}%)')
+    print(f'Precision: {precision:.4f} ({precision * 100:.2f}%)')
+    print(f'Recall: {recall:.4f} ({recall * 100:.2f}%)')
+    print(f'F1-Score: {f1:.4f} ({f1 * 100:.2f}%)')
              
