@@ -104,5 +104,34 @@ def get_model(
                 return y_pred
             
         model = Balanced_CNN()
+
+    elif model_name == 'No_Max_Pooling_CNN':
+        class No_Max_Pooling_CNN(nn.Module):
+            def __init__(self):
+                super(No_Max_Pooling_CNN, self).__init__()
+                self.layers = nn.Sequential(
+                    nn.Conv2d(1, 10, kernel_size = 5, padding = 2, stride=1),
+                    nn.ReLU(),
+                    nn.Conv2d(10, 20, kernel_size = 5, padding = 2),
+                    nn.Dropout2d(),
+                    nn.ReLU(),
+                    nn.Conv2d(20, 40, kernel_size = 5, padding = 2),
+                    nn.Dropout2d(),
+                    nn.ReLU(),
+                    nn.Flatten(),
+                    nn.Linear(40 * 28 * 28, 128),
+                    nn.ReLU(),
+                    nn.Dropout(),
+                    nn.Linear(128, 64),
+                    nn.ReLU(),
+                    nn.Linear(64, output_size),
+                    nn.LogSoftmax(dim=1),
+                )
+
+            def forward(self, x):
+                y_pred = self.layers(x)
+                return y_pred
+            
+        model = No_Max_Pooling_CNN()
     
     return model
