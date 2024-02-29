@@ -24,12 +24,15 @@ def experimental_model_evaluation():
 
     dataset = 'MNIST'
     # model_name = 'Balanced_MLP'
-    model_names = ['Balanced_MLP', 'Wide_MLP', 'One_Layer_MLP', 'Deep_MLP', 'Deep_Skinny_MLP']
+    # model_names = ['Balanced_MLP', 'Wide_MLP', 'One_Layer_MLP', 'Deep_MLP', 'Deep_Skinny_MLP']
+    model_names = ['One_Layer_MLP', 'Wide_MLP', 'Large_MLP', 'Balanced_MLP', 
+                   'Square_MLP', 'Balanced_CNN', 'No_Max_Pooling_CNN',
+                   'Small_Kernel_CNN', 'High_Stride_CNN', 'Large_CNN']
     # model_names = ['Balanced_MLP', 'Wide_MLP']
     train_batch_size = 200
     test_batch_size = 50
     device, on_gpu = cuda_setup()
-    epochs = 50
+    epochs = 30
     learning_rate = 0.0001
     momentum = 0.9
     optimizer_name = "ADAM"
@@ -96,7 +99,7 @@ def experimental_model_evaluation():
 def run_single_model():
 
     dataset = 'MNIST'
-    model_name = 'Wide_MLP'
+    model_name = 'No_Max_Pooling_CNN'
     train_batch_size = 200
     test_batch_size = 50
     device, on_gpu = cuda_setup()

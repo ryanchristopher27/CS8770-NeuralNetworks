@@ -30,7 +30,7 @@ def plot_accuracy_curve(train_acc, val_acc):
     fig = plt.figure()
     plt.plot(train_acc, color='blue')
     plt.plot(val_acc, color='red')
-    plt.legend(['Train Accuracy', 'Validation Accuracy'], loc='upper right')
+    plt.legend(['Train Accuracy', 'Validation Accuracy'], loc='lower right')
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
     plt.title('Accuracy Per Epoch')
@@ -41,7 +41,7 @@ def plot_accuracy_curves_multiple_models(curves, models, x_label, y_label, title
     for curve in curves:
         plt.plot(curve)
 
-    plt.legend(models, loc='upper right')
+    plt.legend(models, loc='lower right')
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.title(title)
