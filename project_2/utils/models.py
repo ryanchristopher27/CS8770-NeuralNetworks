@@ -4,7 +4,7 @@ import torch.nn.init as init
 
 import torch
 import lightning as L
-from torch.optim import Adam
+from torch.optim import Adam, SGD
 from torch.optim.lr_scheduler import CosineAnnealingLR
 
 
@@ -36,6 +36,8 @@ class Network(L.LightningModule):
         self.objective_function = config["hyper_parameters"]["objective"]
 
         self.task = config["experiment"]
+
+        self.optimizer = config["hyper_parameters"]["optimizer"]
 
         # Create: LSTM Architecture
         self.lstm_arch = torch.nn.LSTM(batch_first=True,
@@ -78,8 +80,11 @@ class Network(L.LightningModule):
         """
 
         # Create: Optimzation Routine
-
-        optimizer = Adam(self.parameters(), lr=self.alpha)
+        if self.optimizer == "Adam":
+            optimizer = Adam(self.parameters(), lr=self.alpha)
+        elif self.optimizer == "SGD":
+            optimizer = SGD(self.parameters(), lr=self.alpha)
+        
 
         # Create: Learning Rate Schedular
 
@@ -113,7 +118,7 @@ class Network(L.LightningModule):
             
             # Task: Many To One
             if self.task == 0:
-                features, (hidden, cell) = self.lstm_arch(x, (hidden, cell))
+                features, (hidden, cell) = self.lstm_arch(x.unsqueeze(1), (hidden, cell))
                 features = features[:, -1].view(batch_size, -1)
                 preds = self.linear(features)
 
@@ -212,3 +217,26 @@ class Network(L.LightningModule):
 
         self.shared_step(batch, batch_idx, "valid_error")
 
+    def test_step(self, batch, batch_idx):
+        """
+        Purpose: 
+        - Define network test iteration
+
+        Arguments: 
+        - batch (tuple[any]): network observations (i.e., samples, labels)
+        - batch_idx (int): batch iteration counter
+        """
+
+        self.shared_step(batch, batch_idx, "test_error")
+
+    def predict_step(self, batch, batch_idx):
+        """
+        Purpose: 
+        - Define network predict iteration
+
+        Arguments: 
+        - batch (tuple[any]): network observations (i.e., samples, labels)
+        - batch_idx (int): batch iteration counter
+        """
+
+        self.shared_step(batch, batch_idx, "predict_error")

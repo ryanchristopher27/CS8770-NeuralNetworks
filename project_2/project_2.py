@@ -1,6 +1,7 @@
+from pytorch_lightning.utilities.types import EVAL_DATALOADERS
 import torch
 import torch.nn as nn
-import pytorch_lightning as pl
+from torch.utils.data import random_split
 from torch.utils.data import DataLoader, TensorDataset
 from ucimlrepo import fetch_ucirepo
 from sklearn.preprocessing import StandardScaler
@@ -9,12 +10,16 @@ from tqdm import tqdm
 import lightning as L
 from lightning.pytorch.loggers import CSVLogger
 from lightning.pytorch.callbacks import LearningRateMonitor
+import os
 
 from utils.models import Network
 from utils.data import Dataset
 
 
 from utils.config import config
+from utils.helpers import *
+from utils.plots import *
+
 
 # Fetch the dataset
 air_quality = fetch_ucirepo(id=360)
@@ -22,6 +27,10 @@ X = air_quality.data.features
 
 # Assuming 'Date' is the first column
 X = X.iloc[:, 1:]
+
+Y = X['T']
+
+X = X.loc[:, X.columns != 'T']
 
 # Convert non-numeric columns to numeric using one-hot encoding
 X = pd.get_dummies(X)
@@ -31,19 +40,29 @@ scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
 # Create a PyTorch dataset
-dataset = TensorDataset(torch.tensor(X_scaled, dtype=torch.float32))
+dataset = TensorDataset(torch.tensor(X_scaled, dtype=torch.float32), torch.tensor(Y, dtype=torch.float32))
 
-class AirQualityDataModule(pl.LightningDataModule):
-    def __init__(self, batch_size, dataset):
+class AirQualityDataModule(L.LightningDataModule):
+    def __init__(self, batch_size, dataset, val_batch_size):
         super().__init__()
         self.batch_size = batch_size
         self.dataset = dataset
+        self.val_batch_size = val_batch_size
 
     def setup(self, stage=None):
-        self.train_dataset = dataset
+        dataset_size = len(self.dataset)
+        val_size = int(0.2 * dataset_size)
+        train_size = dataset_size - val_size
+
+        # Split the dataset into train and validation sets
+        self.train_dataset, self.val_dataset = random_split(self.dataset, [train_size, val_size])
 
     def train_dataloader(self):
-        return DataLoader(self.dataset, batch_size=self.batch_size)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size)
+    
+    def val_dataloader(self):
+        return DataLoader(self.val_dataset, batch_size=self.val_batch_size)
+
 
 # class RNNModel(pl.LightningModule):
 #     def __init__(self, input_size, hidden_size, num_layers):
@@ -96,7 +115,8 @@ accelerator = config["system"]["accelerator"]
 num_devices = config["system"]["num_devices"]
 
 # Data Module
-data_module = AirQualityDataModule(batch_size, dataset)
+data_module = AirQualityDataModule(batch_size, dataset, batch_size)
+data_module.setup()
 
 # Create Model
 model = Network(config)
@@ -117,4 +137,20 @@ trainer = L.Trainer(callbacks=[lr_monitor],
 
 # Train: Model
 
-trainer.fit(model=model, train_dataloaders=data_module.train_dataloader())
+trainer.fit(model=model, train_dataloaders=data_module.train_dataloader(), val_dataloaders=data_module.val_dataloader())
+
+target_names = config["evaluation"]["tags"]
+
+# Gather: Most Recent Trained Model (Highest Version)
+
+path_version = os.path.join(path_save, "lightning_logs")
+version = get_latest_version(path_version)
+
+# Update: Paths
+
+path_file = os.path.join(path_version, "version_%s" % version, "metrics.csv")
+
+# Visualize: Training Analytics
+
+get_training_results(path_file, target_names)
+
