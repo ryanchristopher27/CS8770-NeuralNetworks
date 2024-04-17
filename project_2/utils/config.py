@@ -12,8 +12,8 @@ config["experiment"] = 0
 # System Parameters
 config["system"] = {
     "accelerator": "gpu",
-    "strategty": "auto",
-    "num_deviced": 1,
+    "strategy": "auto",
+    "num_devices": 1,
     "num_workers": 8,
 }
 
@@ -28,8 +28,10 @@ config["data"] = {
 # Model Paramters
 #==========================================================
 config["model"] = {
-    "num_layers": 3,
-    "hidden_size": 512,
+    "type": "LSTM",
+    "num_layers": 2,
+    "hidden_size": 64,
+    "input_size": 10,
 }
 
 # Hyper Paramters
@@ -38,6 +40,7 @@ config["hyper_parameters"] = {
     "batch_size": 64,
     "learning_rate": 3e-3,
     "num_epochs": 100,
+    "objective": "mse_loss",
 }
 
 # Evaluation Parameters
@@ -52,7 +55,7 @@ config["evaluation"] = {
 
 # Path Parameters
 #==========================================================
-config["path"] = {
+config["paths"] = {
     "results": "results",
     "version": 0,
 }

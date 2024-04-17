@@ -10,7 +10,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 
 class Network(L.LightningModule):
     """
-    Purpose: LSTM Network
+    Purpose: Custom Network
     """
     
     def __init__(self, config):
@@ -19,27 +19,35 @@ class Network(L.LightningModule):
         - Define network architecture
         
         Arguments:
-        - params (dict[any]): user defined parameters
+        - config (dict[any]): user defined parameters
         """
         
         super().__init__()
 
-        self.alpha = config["model"]["learning_rate"]
-        self.num_epochs = config["model"]["num_epochs"]
+        self.alpha = config["hyper_parameters"]["learning_rate"]
+        self.num_epochs = config["hyper_parameters"]["num_epochs"]
         
+        self.model_type = config["model"]["type"]
         self.hidden_size = config["model"]["hidden_size"]
         self.num_layers = config["model"]["num_layers"]
         
         self.input_size = config["data"]["num_features"]
 
+        self.objective_function = config["hyper_parameters"]["objective"]
+
         self.task = config["experiment"]
 
         # Create: LSTM Architecture
-
-        self.arch = torch.nn.LSTM(batch_first=True,
+        self.lstm_arch = torch.nn.LSTM(batch_first=True,
                                   num_layers=self.num_layers,
                                   input_size=self.input_size, 
                                   hidden_size=self.hidden_size)
+        
+        # Create: RNN Architecture
+        self.rnn_arch = torch.nn.RNN(batch_first=True,
+                                 num_layers=self.num_layers,
+                                 input_size=self.input_size,
+                                 hidden_size=self.hidden_size)
 
         self.linear = torch.nn.Linear(self.hidden_size, 1)
      
@@ -55,8 +63,10 @@ class Network(L.LightningModule):
         Returns:
         - (torch.tensor[float]): error between ground truths and predictions
         """
-        
-        return torch.nn.functional.mse_loss(labels, preds)
+        if self.objective_function == "mse_loss":
+            obj = torch.nn.functional.mse_loss(labels, preds)
+
+        return obj
 
     def configure_optimizers(self):
         """
@@ -94,29 +104,50 @@ class Network(L.LightningModule):
 
         batch_size = x.size()[0]
 
-        # Create: Hidden & Cell States
-        
-        hidden = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(x.device)
-        cell = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(x.device)
+        # LSTM Model
+        if self.model_type == "LSTM":
 
-        # Task: Many To One
-        
-        if self.task == 0:
-            features, (hidden, cell) = self.arch(x, (hidden, cell))
-            features = features[:, -1].view(batch_size, -1)
-            preds = self.linear(features)
-
-        # Task: Many To Many
-        
-        else:
+            # Create: Hidden & Cell States
+            hidden = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(x.device)
+            cell = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(x.device)
             
-            preds = torch.zeros(batch_size, target_seq).to(x.device)
-
-            for i in range(target_seq):
-                features, (hidden, cell) = self.arch(x, (hidden, cell))
+            # Task: Many To One
+            if self.task == 0:
+                features, (hidden, cell) = self.lstm_arch(x, (hidden, cell))
                 features = features[:, -1].view(batch_size, -1)
-                output = self.linear(features).view(-1)
-                preds[:, i] = output
+                preds = self.linear(features)
+
+            # Task: Many To Many
+            else:
+                
+                preds = torch.zeros(batch_size, target_seq).to(x.device)
+
+                for i in range(target_seq):
+                    features, (hidden, cell) = self.lstm_arch(x, (hidden, cell))
+                    features = features[:, -1].view(batch_size, -1)
+                    output = self.linear(features).view(-1)
+                    preds[:, i] = output
+
+        # RNN Model
+        elif self.model_type == "RNN":
+            # Create: Hidden State
+            hidden = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(x.device)
+            
+            # Task: Many To One
+            if self.task == 0:
+                features, hidden = self.rnn_arch(x, hidden)
+                features = features[:, -1].view(batch_size, -1)
+                preds = self.linear(features)
+            
+            # Task: Many To Many
+            else:
+                preds = torch.zeros(batch_size, target_seq).to(x.device)
+                
+                for i in range(target_seq):
+                    features, hidden = self.rnn_arch(x, hidden)
+                    features = features[:, -1].view(batch_size, -1)
+                    output = self.linear(features).view(-1)
+                    preds[:, i] = output
 
         return preds
 

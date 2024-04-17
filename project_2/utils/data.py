@@ -127,68 +127,6 @@ def format_dataset(params, data):
     return (train, valid)
 
 
-def generate_signals(params):
-    """
-    Purpose: 
-    - Create dataset for many to one prediction
-    - Each sample is a signal sequence of varying amplitude and phase shift, but using the same frequency 
-
-    Arguments:
-    - params (dict[str, any]): user defined parameters
-
-    Returns:
-    - (Dataset): machine learning dataset
-    """
-
-    task = params["experiment"]
-
-    num_sequence = params["data"]["num_sequence"]
-    num_features = params["data"]["num_features"]
-    num_samples = params["data"]["num_samples"]
-    
-    min_freq = params["data"]["frequency"]["min"]
-    max_freq = params["data"]["frequency"]["max"]
-
-    min_amp = params["data"]["amplitude"]["min"]
-    max_amp = params["data"]["amplitude"]["max"]
-
-    all_samples, all_labels = [], []
-    
-    for i in range(num_samples):
-
-        frequency = np.random.randint(min_freq, max_freq)
-        period = 1 / frequency
-
-        if task == 1:
-            phase_shift = np.random.randint(0, 360) * (np.pi / 180)
-
-        sequence = []
-        for j in range(num_sequence):
-
-            amplitude = np.random.randint(min_amp, max_amp)
-
-            if task == 0:
-                phase_shift = np.random.randint(0, 360) * (np.pi / 180)
-
-            time = np.linspace(0, period, num_features)
-            
-            wave = amplitude * np.sin(2 * np.pi * frequency * time + phase_shift)
-            sequence.append(wave)
-
-        sequence = np.asarray(sequence)
-
-        all_samples.append(sequence)
-
-        if task == 0:
-            all_labels.append([frequency])
-        else:
-            all_labels.append([frequency, round(phase_shift, 3)])
-
-    all_labels = np.asarray(all_labels)
-    all_samples = np.asarray(all_samples, dtype=object)
-    
-    return Dataset(all_samples, all_labels, shuffle=True)
-
 
 def generate_dataset(params):
     """
