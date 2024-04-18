@@ -52,6 +52,8 @@ class Network(L.LightningModule):
                                  hidden_size=self.hidden_size)
 
         self.linear = torch.nn.Linear(self.hidden_size, 1)
+
+        self.test_predictions = []
      
     def objective(self, labels, preds):
         """
@@ -118,7 +120,7 @@ class Network(L.LightningModule):
             
             # Task: Many To One
             if self.task == 0:
-                features, (hidden, cell) = self.lstm_arch(x.unsqueeze(1), (hidden, cell))
+                features, (hidden, cell) = self.lstm_arch(x, (hidden, cell))
                 features = features[:, -1].view(batch_size, -1)
                 preds = self.linear(features)
 
@@ -239,4 +241,11 @@ class Network(L.LightningModule):
         - batch_idx (int): batch iteration counter
         """
 
-        self.shared_step(batch, batch_idx, "predict_error")
+        samples, labels = batch
+        preds = self(samples)
+
+        self.test_predictions.append(preds.cpu().numpy())
+
+        # return preds.cpu().numpy()
+
+        # self.shared_step(batch, batch_idx, "predict_error")

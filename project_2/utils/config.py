@@ -20,18 +20,18 @@ config["system"] = {
 # Data Parameters
 #==========================================================
 config["data"] = {
-    "num_sequences": 1,
-    "num_samples": 2000,
-    "num_features": 36,
+    "num_samples": 555,
+    "num_sequences": 50,
+    "num_features": 1,
 }
 
 # Model Paramters
 #==========================================================
 config["model"] = {
-    "type": "LSTM",
-    "num_layers": 1,
-    "hidden_size": 36,
-    "input_size": 36,
+    "type": "RNN",
+    "num_layers": 2,
+    "hidden_size": 50,
+    "input_size": 1,
 }
 
 # Hyper Paramters
@@ -39,9 +39,9 @@ config["model"] = {
 config["hyper_parameters"] = {
     "batch_size": 32,
     "learning_rate": 0.001,
-    "num_epochs": 100,
+    "num_epochs": 50,
     "objective": "mse_loss",
-    "optimizer": "SGD",
+    "optimizer": "Adam", # Adam, SGD
 }
 
 # Evaluation Parameters
