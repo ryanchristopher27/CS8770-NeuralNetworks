@@ -22,7 +22,7 @@ config["system"] = {
 config["data"] = {
     "num_samples": 555,
     "num_sequences": 50,
-    "num_features": 1,
+    "num_features": 6,
 }
 
 # Model Paramters
@@ -31,7 +31,7 @@ config["model"] = {
     "type": "RNN",
     "num_layers": 2,
     "hidden_size": 50,
-    "input_size": 1,
+    "input_size": config["data"]["num_features"],
 }
 
 # Hyper Paramters

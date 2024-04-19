@@ -11,6 +11,7 @@ import lightning as L
 from lightning.pytorch.loggers import CSVLogger
 from lightning.pytorch.callbacks import LearningRateMonitor
 import os
+from sklearn.preprocessing import MinMaxScaler
 
 from utils.models import Network
 from utils.data import Dataset, create_stock_dataset, StockDataModule
@@ -28,10 +29,15 @@ batch_size = config["hyper_parameters"]["batch_size"]
 strategy = config["system"]["strategy"]
 accelerator = config["system"]["accelerator"]
 num_devices = config["system"]["num_devices"]
+num_features = config["data"]["num_features"]
+seq_length = config["data"]["num_sequences"]
+
+train_scaler = MinMaxScaler(feature_range=(0,1))
+test_scaler = MinMaxScaler(feature_range=(0,1))
 
 
 # Create Train and Dest Datasets
-X_train, y_train, X_test, y_test = create_stock_dataset()
+X_train, y_train, X_test, y_test, train_scaler, test_scaler = create_stock_dataset(num_features=num_features, seq_len=seq_length, train_scaler=train_scaler, test_scaler=test_scaler)
 train_dataset = TensorDataset(torch.tensor(X_train, dtype=torch.float32), torch.tensor(y_train, dtype=torch.float32))
 test_dataset = TensorDataset(torch.tensor(X_test, dtype=torch.float32), torch.tensor(y_test, dtype=torch.float32))
 
@@ -71,17 +77,30 @@ path_file = os.path.join(path_version, "version_%s" % version, "metrics.csv")
 
 get_training_results(path_file, target_names)
 
-# trainer.test(model=model, dataloaders=data_module.test_dataloader())
+trainer.test(model=model, dataloaders=data_module.test_dataloader())
 trainer.predict(model=model, dataloaders=data_module.test_dataloader())
+
+# train_scaler = MinMaxScaler(feature_range=(55,151))
+# test_scaler = MinMaxScaler(feature_range=(85, 115))
 
 predictions = np.concatenate(model.test_predictions)
 
-df_predictions = pd.DataFrame(predictions, columns=["Predicted"])
+# print(predictions.shape)
+# print(predictions)
 
-# print(df_predictions.shape)
-# print(pd.DataFrame(y_test).shape)
+dummy_features_pred = np.zeros((predictions.shape[0], 6))
+predictions = predictions.reshape(-1)
+dummy_features_pred[:, 0] = predictions
+unnormalized_predictions = test_scaler.inverse_transform(dummy_features_pred)[:, 0]
 
-df_actual = pd.DataFrame(y_test, columns=["Actual"])
+df_predictions = pd.DataFrame(unnormalized_predictions, columns=["Predicted"])
+
+dummy_features_y_test = np.zeros((y_test.shape[0], 6))
+y_test = y_test.reshape(-1)
+dummy_features_y_test[:, 0] = y_test
+unnormalized_y_test = test_scaler.inverse_transform(dummy_features_y_test)[:, 0]
+
+df_actual = pd.DataFrame(unnormalized_y_test, columns=["Actual"])
 
 # Ensure that the number of predictions matches the number of actual values
 if len(df_predictions) > len(df_actual):
@@ -95,11 +114,17 @@ df_combined = pd.concat([df_predictions, df_actual], axis=1)
 # Reset the index of the combined DataFrame
 df_combined.reset_index(drop=True, inplace=True)
 
-df_train = pd.DataFrame(y_train, columns=["Train"])
+dummy_features_y_train = np.zeros((y_train.shape[0], 6))
+y_train = y_train.reshape(-1)
+dummy_features_y_train[:, 0] = y_train
+unnormalized_y_train = train_scaler.inverse_transform(dummy_features_y_train)[:, 0]
+
+df_train = pd.DataFrame(unnormalized_y_train, columns=["Train"])
 
 # Concatenate the train data with the combined DataFrame
 df_plot = pd.concat([df_train, df_combined], ignore_index=True)
 
+'''
 # Plot the train data, predicted values, and actual values
 plt.figure(figsize=(10, 6))
 plt.plot(df_plot.index[:len(df_train)], df_plot['Train'][:len(df_train)], label='Train')
@@ -111,8 +136,9 @@ plt.title('Train, Predicted, and Actual Values')
 plt.legend()
 plt.grid(True)
 plt.show()
-
 '''
+
+# '''
 # Plot the predicted and actual values
 plt.figure(figsize=(10, 6))
 plt.plot(df_combined.index, df_combined['Predicted'], label='Predicted')
@@ -123,4 +149,4 @@ plt.title('Predicted vs Actual Values')
 plt.legend()
 plt.grid(True)
 plt.show()
-'''
+# '''
