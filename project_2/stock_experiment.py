@@ -41,6 +41,10 @@ X_train, y_train, X_test, y_test, train_scaler, test_scaler = create_stock_datas
 train_dataset = TensorDataset(torch.tensor(X_train, dtype=torch.float32), torch.tensor(y_train, dtype=torch.float32))
 test_dataset = TensorDataset(torch.tensor(X_test, dtype=torch.float32), torch.tensor(y_test, dtype=torch.float32))
 
+print(X_train.shape)
+
+config["data"]["num_samples"] = X_train.shape[0]
+
 # Data Module
 data_module = StockDataModule(batch_size, train_dataset, test_dataset, test_dataset)
 # data_module.setup()

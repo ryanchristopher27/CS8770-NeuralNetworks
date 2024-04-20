@@ -155,6 +155,10 @@ class StockDataModule(L.LightningModule):
 
 
 def create_stock_dataset(num_features = 1, seq_len = 50, train_scaler = MinMaxScaler(feature_range=(0, 1)), test_scaler = MinMaxScaler(feature_range=(0, 1))):
+    print("Data Preprocessing")
+    print(f"Num Features: {num_features}")
+    print(f"Sequence Length: {seq_len}")
+    
     start_date = dt.datetime(2020,4,1)
     end_date = dt.datetime(2023,4,1)
  
@@ -210,23 +214,23 @@ def create_stock_dataset(num_features = 1, seq_len = 50, train_scaler = MinMaxSc
         dataset_train = train_scaler.fit_transform(dataset_train)
 
         dataset_train = np.reshape(dataset_train, (-1,6)) 
-        scaled_train = dataset_train.reshape((605, 6, 1))
+        scaled_train = dataset_train.reshape((dataset_train.shape[0], 6, 1))
 
         dataset_test = test_data.values  
         scaled_test = test_scaler.fit_transform(dataset_test) 
         scaled_test = np.reshape(scaled_test, (-1,6)) 
-        scaled_test = scaled_test.reshape((151, 6, 1))
+        scaled_test = scaled_test.reshape((scaled_test.shape[0], 6, 1))
 
         X_train = []
         y_train = []
-        for i in range(50, len(scaled_train)):
-            X_train.append(scaled_train[i-50:i, :, 0])
+        for i in range(seq_len, len(scaled_train)):
+            X_train.append(scaled_train[i-seq_len:i, :, 0])
             y_train.append(scaled_train[i, 0])
 
         X_test = []
         y_test = []
-        for i in range(50, len(scaled_test)):
-            X_test.append(scaled_test[i-50:i, :, 0])
+        for i in range(seq_len, len(scaled_test)):
+            X_test.append(scaled_test[i-seq_len:i, :, 0])
             y_test.append(scaled_test[i, 0])
 
         X_train, y_train = np.array(X_train), np.array(y_train)
