@@ -14,7 +14,7 @@ config["system"] = {
     "accelerator": "gpu",
     "strategy": "auto",
     "num_devices": 1,
-    "num_workers": 8,
+    "num_workers": 24,
 }
 
 # Data Parameters
@@ -29,7 +29,7 @@ config["data"] = {
 #==========================================================
 config["model"] = {
     "type": "LSTM",
-    "num_layers": 2,
+    "num_layers": 5,
     "hidden_size": 50,
     "input_size": config["data"]["num_features"],
 }
