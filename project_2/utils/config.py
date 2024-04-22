@@ -29,18 +29,18 @@ config["data"] = {
 #==========================================================
 config["model"] = {
     "type": "LSTM",
-    "num_layers": 5,
-    "hidden_size": 50,
+    "num_layers": 2,
+    "hidden_size": 100,
     "input_size": config["data"]["num_features"],
 }
 
 # Hyper Paramters
 #==========================================================
 config["hyper_parameters"] = {
-    "batch_size": 32,
+    "batch_size": 10,
     "learning_rate": 0.001,
-    "num_epochs": 50,
-    "objective": "mse_loss",
+    "num_epochs": 100,
+    "objective": "mse_loss", # mse_loss, mae_loss, cross_entropy
     "optimizer": "Adam", # Adam, SGD
 }
 

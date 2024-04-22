@@ -31,7 +31,7 @@ def main():
     for i, seq_length in enumerate(seq_lengths):
         config['data']['num_sequences'] = seq_length
 
-        df_predictions, df_actual = stock_experiment(config, plot_results=False)
+        df_predictions, df_actual = stock_experiment(config, plot_results=True)
 
         df_predictions.reset_index(drop=True, inplace=True)
         df_actual.reset_index(drop=True, inplace=True)

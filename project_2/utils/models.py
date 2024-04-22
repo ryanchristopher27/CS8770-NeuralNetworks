@@ -69,6 +69,10 @@ class Network(L.LightningModule):
         """
         if self.objective_function == "mse_loss":
             obj = torch.nn.functional.mse_loss(labels, preds)
+        elif self.objective_function == "mae_loss":
+            obj = torch.nn.functional.l1_loss(labels, preds)
+        elif self.objective_function == "cross_entropy":
+            obj = torch.nn.functional.cross_entropy(labels, preds)
 
         return obj
 
