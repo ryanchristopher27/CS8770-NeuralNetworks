@@ -1,12 +1,6 @@
-from pytorch_lightning.utilities.types import EVAL_DATALOADERS
 import torch
-import torch.nn as nn
-from torch.utils.data import random_split
-from torch.utils.data import DataLoader, TensorDataset
-from ucimlrepo import fetch_ucirepo
-from sklearn.preprocessing import StandardScaler
+from torch.utils.data import TensorDataset
 import pandas as pd
-from tqdm import tqdm
 import lightning as L
 from lightning.pytorch.loggers import CSVLogger
 from lightning.pytorch.callbacks import LearningRateMonitor
@@ -14,12 +8,10 @@ import os
 from sklearn.preprocessing import MinMaxScaler
 
 from utils.models import Network
-from utils.data import Dataset, create_stock_dataset, StockDataModule
-
-
-# from utils.config import config
+from utils.data import create_stock_dataset, StockDataModule
 from utils.helpers import *
 from utils.plots import *
+# from utils.config import config
 
 
 
@@ -86,16 +78,13 @@ def stock_experiment(config: dict, plot_results: bool):
 
         get_training_results(path_file, target_names)
 
-    trainer.test(model=model, dataloaders=data_module.test_dataloader())
+    test_stats = trainer.test(model=model, dataloaders=data_module.test_dataloader())
     trainer.predict(model=model, dataloaders=data_module.test_dataloader())
 
-    # train_scaler = MinMaxScaler(feature_range=(55,151))
-    # test_scaler = MinMaxScaler(feature_range=(85, 115))
+    test_error_epoch = test_stats[0]["test_error_epoch"]
+    # print(test_stats)
 
     predictions = np.concatenate(model.test_predictions)
-
-    # print(predictions.shape)
-    # print(predictions)
 
     dummy_features_pred = np.zeros((predictions.shape[0], 6))
     predictions = predictions.reshape(-1)
@@ -162,4 +151,4 @@ def stock_experiment(config: dict, plot_results: bool):
         plt.show()
         # '''
 
-    return df_predictions, df_actual
+    return df_predictions, df_actual, test_error_epoch

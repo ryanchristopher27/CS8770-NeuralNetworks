@@ -160,10 +160,10 @@ def create_stock_dataset(num_features = 1, seq_len = 50, train_scaler = MinMaxSc
     print(f"Sequence Length: {seq_len}")
     
     start_date = dt.datetime(2020,4,1)
-    end_date = dt.datetime(2023,4,1)
+    end_date = dt.datetime(2024,4,1)
  
     #loading from yahoo finance
-    data = yf.download("GOOGL",start_date, end_date)
+    data = yf.download("AAPL",start_date, end_date)
 
     training_data_len = math.ceil(len(data) * .8) 
 

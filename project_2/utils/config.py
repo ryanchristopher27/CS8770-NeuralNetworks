@@ -39,7 +39,7 @@ config["model"] = {
 config["hyper_parameters"] = {
     "batch_size": 10,
     "learning_rate": 0.001,
-    "num_epochs": 100,
+    "num_epochs": 25,
     "objective": "mse_loss", # mse_loss, mae_loss, cross_entropy
     "optimizer": "Adam", # Adam, SGD
 }
