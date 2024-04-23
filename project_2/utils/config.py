@@ -21,7 +21,7 @@ config["system"] = {
 #==========================================================
 config["data"] = {
     "num_samples": 555,
-    "num_sequences": 5,
+    "num_sequences": 10,
     "num_features": 6,
 }
 
@@ -39,7 +39,7 @@ config["model"] = {
 config["hyper_parameters"] = {
     "batch_size": 10,
     "learning_rate": 0.001,
-    "num_epochs": 25,
+    "num_epochs": 50,
     "objective": "mse_loss", # mse_loss, mae_loss, cross_entropy
     "optimizer": "Adam", # Adam, SGD
 }

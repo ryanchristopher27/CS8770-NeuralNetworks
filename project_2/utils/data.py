@@ -156,8 +156,8 @@ class StockDataModule(L.LightningModule):
 
 def create_stock_dataset(num_features = 1, seq_len = 50, train_scaler = MinMaxScaler(feature_range=(0, 1)), test_scaler = MinMaxScaler(feature_range=(0, 1))):
     print("Data Preprocessing")
-    print(f"Num Features: {num_features}")
-    print(f"Sequence Length: {seq_len}")
+    # print(f"Num Features: {num_features}")
+    # print(f"Sequence Length: {seq_len}")
     
     start_date = dt.datetime(2020,4,1)
     end_date = dt.datetime(2024,4,1)

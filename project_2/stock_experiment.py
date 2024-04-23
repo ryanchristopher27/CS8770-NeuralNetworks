@@ -37,7 +37,7 @@ def stock_experiment(config: dict, plot_results: bool):
     train_dataset = TensorDataset(torch.tensor(X_train, dtype=torch.float32), torch.tensor(y_train, dtype=torch.float32))
     test_dataset = TensorDataset(torch.tensor(X_test, dtype=torch.float32), torch.tensor(y_test, dtype=torch.float32))
 
-    print(X_train.shape)
+    # print(X_train.shape)
 
     config["data"]["num_samples"] = X_train.shape[0]
 
