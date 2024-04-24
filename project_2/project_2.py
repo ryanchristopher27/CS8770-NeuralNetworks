@@ -27,10 +27,11 @@ def main():
     num_args = len(sys.argv)
 
     experiment = 'dynamic'
-    exp_type = 'learning_rate'
-    iterable = [0.1, 0.01, 0.001, 0.0001]
+    exp_type = 'sequence'
+    iterable = [1, 2, 5, 10, 25, 50]
+    # iterable = [1, 2]
 
-    plot_results = False
+    plot_results = True
 
     if num_args >= 2:
         if sys.argv[1].lower() == 'dynamic':
@@ -82,10 +83,14 @@ def dynamic_stock_experiment(exp_type, iterable, plot_results):
 
         # Only Add Actual Once
         if i == 0:
-            ax.plot(df_actual.index, df_actual, label='Actual')
+            ax.plot(df_actual.head(150).index, df_actual.tail(150), label='Actual')
         
-        ax.plot(df_predictions.index, df_predictions, label=f'Predicted ({val})')
+        ax.plot(df_predictions.head(150).index, df_predictions.tail(150), label=f'Predicted ({val})')
         # ax.plot(df_predictions.index, df_predictions, label=f'Predicted (Seq={seq_length})')
+
+    path = f"./results/{exp_type}"
+    if not os.path.exists(path):
+        os.makedirs(path)
 
     # Plot Predictions
     ax.set_xlabel('Index')
@@ -94,15 +99,25 @@ def dynamic_stock_experiment(exp_type, iterable, plot_results):
     ax.legend()
     ax.grid(True)
     plt.tight_layout()
+
+    plt.savefig(path + f"/preds_vs_actual_{config['model']['type']}.png")
+
     plt.show()
 
     # Plot Test Errors
     plt.figure(figsize=(8, 6))
     plt.plot(iterable, test_errors, marker='o')
+    # plt.bar(iterable, test_errors)
     plt.xlabel(f'{exp_type.capitalize()}')
     plt.ylabel('Test Error')
     plt.title(f'Test Error vs. {exp_type.capitalize()}')
     plt.grid(True)
+
+    for i, val in enumerate(iterable):
+        plt.text(val, test_errors[i], f'{test_errors[i]:.4f}', ha='center', va='bottom')
+
+    plt.savefig(path + f"/test_error_{config['model']['type']}.png")
+
     plt.show()
 
 

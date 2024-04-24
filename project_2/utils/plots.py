@@ -1,6 +1,7 @@
 # Imports
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 plt.style.use("ggplot")
 
@@ -74,6 +75,7 @@ def plot_comparisons(all_results, figsize=(8, 4), fontsize=14):
     plt.show()
 
 def plot_training(x_vals, y_vals, title, x_label, y_label, 
+                  path_plots, show_plots, save_plots, 
                   figsize=(8, 4), fontsize=14):
     """
     Purpose:
@@ -98,7 +100,16 @@ def plot_training(x_vals, y_vals, title, x_label, y_label,
     ax.set_ylabel("%s" % y_label, fontsize=fontsize)
 
     fig.tight_layout()
-    plt.show()
+
+    if save_plots:
+        path = path_plots + f"/{y_label}_vs_{x_label}.png"
+        plt.savefig(path)
+        plt.close()
+
+    if show_plots:
+        plt.show()
+        
+    # plt.show()
 
 def show_examples(dataset, task, figsize=(8, 4), fontsize=14):
     """

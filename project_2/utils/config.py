@@ -28,7 +28,7 @@ config["data"] = {
 # Model Paramters
 #==========================================================
 config["model"] = {
-    "type": "LSTM",
+    "type": "RNN",
     "num_layers": 2,
     "hidden_size": 100,
     "input_size": config["data"]["num_features"],
@@ -38,7 +38,7 @@ config["model"] = {
 #==========================================================
 config["hyper_parameters"] = {
     "batch_size": 10,
-    "learning_rate": 0.001,
+    "learning_rate": 0.005,
     "num_epochs": 50,
     "objective": "mse_loss", # mse_loss, mae_loss, cross_entropy
     "optimizer": "Adam", # Adam, SGD
@@ -50,8 +50,10 @@ config["evaluation"] = {
     "tags": [
         "train_error_epoch",
         "valid_error_epoch",
-        "lr-" + config["hyper_parameters"]["optimizer"]
-    ]
+        # "lr-" + config["hyper_parameters"]["optimizer"]
+    ],
+    "show_plots": False,
+    "save_plots": True,
 }
 
 # Path Parameters

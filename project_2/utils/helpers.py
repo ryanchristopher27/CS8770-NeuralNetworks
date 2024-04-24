@@ -138,7 +138,7 @@ def get_latest_version(path):
 
     return all_folders[np.argmax(all_folders)]
 
-def get_training_results(path, target_names):
+def get_training_results(path, path_plots, target_names, show_plots, save_plots):
     """
     Purpose:
     - Gather and show training analytics
@@ -173,4 +173,4 @@ def get_training_results(path, target_names):
         y_label = "%s" % name
         x_label = "%s" % tag
     
-        plot_training(x_vals, y_vals, title, x_label, y_label)
+        plot_training(x_vals, y_vals, title, x_label, y_label, path_plots, show_plots, save_plots)

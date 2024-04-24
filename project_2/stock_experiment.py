@@ -6,6 +6,7 @@ from lightning.pytorch.loggers import CSVLogger
 from lightning.pytorch.callbacks import LearningRateMonitor
 import os
 from sklearn.preprocessing import MinMaxScaler
+import yaml
 
 from utils.models import Network
 from utils.data import create_stock_dataset, StockDataModule
@@ -27,6 +28,9 @@ def stock_experiment(config: dict, plot_results: bool):
     num_devices = config["system"]["num_devices"]
     num_features = config["data"]["num_features"]
     seq_length = config["data"]["num_sequences"]
+
+    show_plots = config["evaluation"]["show_plots"]
+    save_plots = config["evaluation"]["save_plots"]
 
     train_scaler = MinMaxScaler(feature_range=(0,1))
     test_scaler = MinMaxScaler(feature_range=(0,1))
@@ -66,17 +70,26 @@ def stock_experiment(config: dict, plot_results: bool):
 
     target_names = config["evaluation"]["tags"]
 
-    if plot_results:
-        # Gather: Most Recent Trained Model (Highest Version)
-        path_version = os.path.join(path_save, "lightning_logs")
-        version = get_latest_version(path_version)
+    # Gather: Most Recent Trained Model (Highest Version)
+    path_version = os.path.join(path_save, "lightning_logs")
+    version = get_latest_version(path_version)
 
-        # Update: Paths
-        path_file = os.path.join(path_version, "version_%s" % version, "metrics.csv")
+    # Open the file in write mode
+    with open(os.path.join(path_version, "version_%s" % version, 'config.yaml'), 'w') as file:
+        # Use yaml.dump() to write the dictionary to the file
+        yaml.dump(config, file)
+
+    # Update: Paths
+    path_file = os.path.join(path_version, "version_%s" % version, "metrics.csv")
+
+    if plot_results:
+        path_plots = os.path.join(path_version, "version_%s" % version, "plots")
+
+        os.makedirs(path_plots, exist_ok=True)
 
         # Visualize: Training Analytics
 
-        get_training_results(path_file, target_names)
+        get_training_results(path_file, path_plots, target_names, show_plots, save_plots)
 
     test_stats = trainer.test(model=model, dataloaders=data_module.test_dataloader())
     trainer.predict(model=model, dataloaders=data_module.test_dataloader())
@@ -135,7 +148,16 @@ def stock_experiment(config: dict, plot_results: bool):
         plt.title('Train, Predicted, and Actual Values')
         plt.legend()
         plt.grid(True)
-        plt.show()
+
+        if save_plots:
+            path = path_plots + f"/train_and_test.png"
+            plt.savefig(path)
+            plt.close()
+
+        if show_plots:
+            plt.show()
+
+        # plt.show()
         # '''
 
         # '''
@@ -148,7 +170,16 @@ def stock_experiment(config: dict, plot_results: bool):
         plt.title('Predicted vs Actual Values')
         plt.legend()
         plt.grid(True)
-        plt.show()
+
+        if save_plots:
+            path = path_plots + f"/test.png"
+            plt.savefig(path)
+            plt.close()
+
+        if show_plots:
+            plt.show()
+
+        # plt.show()
         # '''
 
     return df_predictions, df_actual, test_error_epoch
