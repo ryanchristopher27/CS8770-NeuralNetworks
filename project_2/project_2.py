@@ -27,9 +27,9 @@ def main():
     num_args = len(sys.argv)
 
     experiment = 'dynamic'
-    exp_type = 'sequence'
-    iterable = [1, 2, 5, 10, 25, 50]
-    # iterable = [1, 2]
+    exp_type = 'num_features'
+    # iterable = [1, 2, 5, 10, 25, 50]
+    iterable = [1, 6]
 
     plot_results = True
 
@@ -67,6 +67,8 @@ def dynamic_stock_experiment(exp_type, iterable, plot_results):
             config['hyper_parameters']['learning_rate'] = val
         elif exp_type == 'hidden_size':
             config['model']['hidden_size'] = val
+        elif exp_type == 'num_features':
+            config['data']['num_features'] = val
         else:
             raise ValueError(f'Invalid Experiment Type: {exp_type}')
         
@@ -83,9 +85,10 @@ def dynamic_stock_experiment(exp_type, iterable, plot_results):
 
         # Only Add Actual Once
         if i == 0:
-            ax.plot(df_actual.head(150).index, df_actual.tail(150), label='Actual')
+            ax.plot(df_actual.index, df_actual, label='Actual')
+            # ax.plot(df_actual.head(150).index, df_actual.tail(150), label='Actual')
         
-        ax.plot(df_predictions.head(150).index, df_predictions.tail(150), label=f'Predicted ({val})')
+        ax.plot(df_predictions.index, df_predictions, label=f'Predicted ({val})')
         # ax.plot(df_predictions.index, df_predictions, label=f'Predicted (Seq={seq_length})')
 
     path = f"./results/{exp_type}"

@@ -21,14 +21,14 @@ config["system"] = {
 #==========================================================
 config["data"] = {
     "num_samples": 555,
-    "num_sequences": 10,
+    "num_sequences": 5,
     "num_features": 6,
 }
 
 # Model Paramters
 #==========================================================
 config["model"] = {
-    "type": "RNN",
+    "type": "LSTM",
     "num_layers": 2,
     "hidden_size": 100,
     "input_size": config["data"]["num_features"],
