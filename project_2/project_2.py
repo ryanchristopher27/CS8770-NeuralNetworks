@@ -27,9 +27,9 @@ def main():
     num_args = len(sys.argv)
 
     experiment = 'dynamic'
-    exp_type = 'num_features'
-    # iterable = [1, 2, 5, 10, 25, 50]
-    iterable = [1, 6]
+    exp_type = 'hidden_size'
+    iterable = [1, 10, 50, 100, 200, 500]
+    # iterable = [1, 6]
 
     plot_results = True
 
